@@ -52,12 +52,14 @@ def create_chunks(lines: List[str]) -> List[str]:
 
 def run():
     lines = get_corpus()
-    lines = lines[:lines.index('CHAPTER TWO')]
+    # lines = lines[:lines.index('CHAPTER TWO')]
     lines = process_corpus(lines)
     lines = ['\n'.join(lines)]
     chunks = create_chunks(lines)
 
-    store = FAISS.from_texts(chunks, OpenAIEmbeddings())
+    metadatas = [{ 'source': f'p-{i}' } for i in range(len(chunks))]
+
+    store = FAISS.from_texts(chunks, OpenAIEmbeddings(), metadatas=metadatas)
     faiss.write_index(store.index, "hp/data/faiss.index")
     store.index = None
     with open("hp/data/faiss.pkl", "wb") as f:
