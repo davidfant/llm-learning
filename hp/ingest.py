@@ -8,16 +8,22 @@ from langchain.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 
-txt_path = './hp/data/book.txt'
+default_txt_path = './hp/data/book.txt'
 txt_url = "https://raw.githubusercontent.com/amephraim/nlp/master/texts/J.%20K.%20Rowling%20-%20Harry%20Potter%201%20-%20Sorcerer's%20Stone.txt"
 
-def get_corpus() -> List[str]:
+def get_corpus(txt_path: str = default_txt_path) -> List[str]:
     if not os.path.exists(txt_path):
         with open(txt_path, 'w') as f:
             f.write(requests.get(txt_url).text)
     
     with open(txt_path, 'r') as f:
-        return f.read().splitlines()
+        content = f.read()
+        content = re.split(r'\n{2,}', content)
+        content = [re.sub(r'\n', ' ', line) for line in content]
+        content = [line.strip() for line in content]
+        content = [line for line in content if line]
+        content = content[:content.index('CHAPTER TWO')]
+        return content
 
 def process_corpus(lines: List[str]) -> str:
     # replace all caps lines with empty string
@@ -52,7 +58,6 @@ def create_chunks(lines: List[str]) -> List[str]:
 
 def run():
     lines = get_corpus()
-    # lines = lines[:lines.index('CHAPTER TWO')]
     lines = process_corpus(lines)
     lines = ['\n'.join(lines)]
     chunks = create_chunks(lines)
